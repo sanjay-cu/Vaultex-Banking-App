@@ -6,6 +6,7 @@ const router = Router();
 
 // Registration Endpoint
 router.post('/register', async (req, res) => {
+  console.log('--- REGISTRATION ATTEMPT STARTED ---');
   try {
     const { 
       fullName, email, password, 
@@ -15,22 +16,47 @@ router.post('/register', async (req, res) => {
       securityQuestion, securityAnswer
     } = req.body;
 
+    console.log(`Payload received for: ${email}`);
+
     if (!fullName || !email || !password) {
-      return res.status(400).json({ error: 'All primary fields are required.' });
+      console.warn('Registration failed: Missing primary fields');
+      return res.status(400).json({ error: 'All primary fields (Name, Email, Password) are required.' });
     }
 
+    // Database connection check
+    const dbState = (await import('mongoose')).connection.readyState;
+    console.log(`Database connection state: ${dbState}`);
+    if (dbState !== 1) {
+      console.warn('Database not connected, attempting to connect...');
+      const { connectDB } = await import('../db');
+      await connectDB();
+    }
+
+    console.log('Checking for existing user...');
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      console.warn(`Registration failed: User ${email} already exists`);
       return res.status(400).json({ error: 'Email already exists! Try logging in.' });
     }
 
     // Generate dummy account number
     const accountNumber = `AC${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`;
+    console.log(`Generated account number: ${accountNumber}`);
 
     // Hash password and PIN
+    console.log('Hashing password and PIN...');
     const hashedPassword = await bcrypt.hash(password, 10);
     const hashedPin = pin ? await bcrypt.hash(pin, 10) : undefined;
+    console.log('Hashing completed');
 
+    // Safely parse initialDeposit
+    let numericDeposit = 0;
+    if (initialDeposit) {
+      const parsed = parseFloat(initialDeposit);
+      numericDeposit = isNaN(parsed) ? 0 : parsed;
+    }
+
+    console.log('Creating new user model instance...');
     const newUser = new User({
       fullName,
       email,
@@ -46,24 +72,41 @@ router.post('/register', async (req, res) => {
       zip,
       country,
       accountType,
-      initialDeposit: initialDeposit ? parseFloat(initialDeposit) : 0,
+      initialDeposit: numericDeposit,
       currency,
       pin: hashedPin,
       securityQuestion,
       securityAnswer
     });
 
-    await newUser.save();
+    console.log('Attempting to save user to database...');
+    try {
+      await newUser.save();
+      console.log('User saved successfully to DB');
+    } catch (saveError: any) {
+      console.error('DATABASE SAVE ERROR:', saveError);
+      if (saveError.code === 11000) {
+        return res.status(400).json({ error: 'Email already exists', message: 'An account with this email already exists.' });
+      }
+      throw saveError;
+    }
 
-    res.json({
+    console.log('Sending success response');
+    res.status(201).json({
       _id: newUser._id,
       fullName: newUser.fullName,
       email: newUser.email,
       accountNumber: newUser.accountNumber,
+      message: 'Account created successfully'
     });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Failed to create user' });
+    console.log('--- REGISTRATION SUCCESSFUL ---');
+  } catch (error: any) {
+    console.error('REGISTRATION CATASTROPHIC FAILURE:', error);
+    res.status(500).json({ 
+      error: 'Failed to create user account', 
+      message: error.message || 'Unknown server error',
+      details: error.name
+    });
   }
 });
 

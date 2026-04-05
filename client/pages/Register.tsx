@@ -272,13 +272,23 @@ const Register = () => {
           body: JSON.stringify(formData),
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create account');
+        const contentType = response.headers.get('content-type');
+        let errorData: any = {};
+        
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+        } else {
+          const text = await response.text();
+          console.error('Server returned non-JSON response:', text);
+          errorData = { error: `Server error (${response.status}): Non-JSON response.` };
         }
 
-        setNewAccount(data);
+        if (!response.ok) {
+          const errorMessage = errorData.error || `Failed to create account (Status: ${response.status})`;
+          throw new Error(errorMessage);
+        }
+
+        setNewAccount(errorData);
         setCurrentStep(6);
       } catch (error: any) {
         setErrors({ submit: error.message || 'Failed to create account. Please try again.' });

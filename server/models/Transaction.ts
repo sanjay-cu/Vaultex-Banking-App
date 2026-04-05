@@ -22,4 +22,4 @@ const TransactionSchema: Schema = new Schema({
   numericBalance: { type: Number, required: true },
 }, { timestamps: true });
 
-export const Transaction = mongoose.model<ITransaction>('Transaction', TransactionSchema);
+export const Transaction = mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema);

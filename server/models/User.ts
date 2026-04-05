@@ -44,4 +44,4 @@ const UserSchema: Schema = new Schema({
   securityAnswer: { type: String },
 }, { timestamps: true });
 
-export const User = mongoose.model<IUser>('User', UserSchema);
+export const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
