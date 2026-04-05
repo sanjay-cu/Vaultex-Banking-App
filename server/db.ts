@@ -8,21 +8,29 @@ export async function connectDB() {
   }
 
   try {
-    const mongoURI = process.env.MONGODB_URI;
+    // Prioritize environment variable, then fallback to hardcoded (for development/deployment ease)
+    const mongoURI = process.env.MONGODB_URI || "mongodb+srv://sanjay:Sanjay123@cluster0.teqwbus.mongodb.net/";
+    
     if (!mongoURI) {
-      throw new Error('MONGODB_URI is not defined in .env');
+      console.error('CRITICAL ERROR: MONGODB_URI is missing!');
+      throw new Error('Connection failed: Database URI not provided.');
     }
 
     // Use buffered commands to avoid errors if connection is still pending
     mongoose.set('bufferCommands', true);
 
-    const conn = await mongoose.connect(mongoURI);
+    console.log('Connecting to MongoDB...');
+    const conn = await mongoose.connect(mongoURI, {
+      serverSelectionTimeoutMS: 5000, // 5 second timeout for server selection
+      connectTimeoutMS: 10000,        // 10 second timeout for connection
+    });
+    
     cachedConnection = conn;
     console.log('Successfully connected to MongoDB.');
     return conn;
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-    // Return null or re-throw so callers know it failed
-    return null;
+  } catch (error: any) {
+    console.error('FAILED to connect to MongoDB:', error.message);
+    // Re-throw so callers (like middleware) know it failed
+    throw error;
   }
 }

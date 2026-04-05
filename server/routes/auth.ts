@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 const router = Router();
 
-// Registration Endpoint
+    // Registration Endpoint
 router.post('/register', async (req, res) => {
   console.log('--- REGISTRATION ATTEMPT STARTED ---');
   try {
@@ -21,15 +21,6 @@ router.post('/register', async (req, res) => {
     if (!fullName || !email || !password) {
       console.warn('Registration failed: Missing primary fields');
       return res.status(400).json({ error: 'All primary fields (Name, Email, Password) are required.' });
-    }
-
-    // Database connection check
-    const dbState = (await import('mongoose')).connection.readyState;
-    console.log(`Database connection state: ${dbState}`);
-    if (dbState !== 1) {
-      console.warn('Database not connected, attempting to connect...');
-      const { connectDB } = await import('../db');
-      await connectDB();
     }
 
     console.log('Checking for existing user...');
