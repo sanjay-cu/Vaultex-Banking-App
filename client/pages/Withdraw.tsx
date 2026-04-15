@@ -1,6 +1,12 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import { useAccount, formatCurrency } from '../context/AccountContext';
 import { useLanguage } from '../context/LanguageContext';
 import Sidebar from '../components/Sidebar';
+import { Card } from '../components/Card';
+import { Input } from '../components/Input';
+import { Button } from '../components/Button';
 
 const Withdraw = () => {
   const navigate = useNavigate();
