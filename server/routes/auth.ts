@@ -202,4 +202,30 @@ router.post('/kyc', async (req, res) => {
   }
 });
 
+// PIN Verification Endpoint
+router.post('/verify-pin', async (req, res) => {
+  try {
+    const { userId, pin } = req.body;
+    if (!userId || !pin) return res.status(400).json({ error: 'User ID and PIN are required' });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // If user has no PIN set, for demo purposes we might allow 1234 or fail
+    if (!user.pin) {
+       return res.status(400).json({ error: 'No PIN set for this account' });
+    }
+
+    const isMatch = await bcrypt.compare(pin, user.pin);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Incorrect PIN' });
+    }
+
+    res.json({ success: true, message: 'PIN verified' });
+  } catch (error) {
+    console.error('PIN verification error:', error);
+    res.status(500).json({ error: 'Server error during PIN verification' });
+  }
+});
+
 export default router;

@@ -12,7 +12,7 @@ const Withdraw = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { t } = useLanguage();
-  const { balance, withdraw, transactions } = useAccount();
+  const { balance, withdraw, transactions, user } = useAccount();
   const [step, setStep] = useState<'method' | 'amount' | 'pin' | 'confirm' | 'success'>('method');
   const [method, setMethod] = useState('atm');
   const [amount, setAmount] = useState('');
@@ -145,7 +145,7 @@ const Withdraw = () => {
     setStep('pin');
   };
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     const newErrors: Record<string, string> = {};
     if (!pin) newErrors.pin = 'PIN is required';
     if (pin.length !== 4) newErrors.pin = 'PIN must be 4 digits';
@@ -155,8 +155,28 @@ const Withdraw = () => {
       return;
     }
 
-    setErrors({});
-    setStep('confirm');
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/verify-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?._id, pin }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ pin: data.error || 'Incorrect PIN' });
+        return;
+      }
+
+      setErrors({});
+      setStep('confirm');
+    } catch (error) {
+      setErrors({ pin: 'Network error. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleConfirm = async () => {

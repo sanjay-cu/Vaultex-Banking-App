@@ -12,7 +12,7 @@ const Transfer = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { t } = useLanguage();
-  const { balance, transfer, transactions } = useAccount();
+  const { balance, transfer, transactions, user } = useAccount();
   const [tab, setTab] = useState<'own' | 'other' | 'international'>('other');
   const [step, setStep] = useState<'recipient' | 'amount' | 'pin' | 'confirm' | 'success'>('recipient');
 
@@ -180,7 +180,7 @@ const Transfer = () => {
     setStep('pin');
   };
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     const newErrors: Record<string, string> = {};
     if (!pin) newErrors.pin = 'PIN is required';
     if (pin.length !== 4) newErrors.pin = 'PIN must be 4 digits';
@@ -190,8 +190,28 @@ const Transfer = () => {
       return;
     }
 
-    setErrors({});
-    setStep('confirm');
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/verify-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?._id, pin }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ pin: data.error || 'Incorrect PIN' });
+        return;
+      }
+
+      setErrors({});
+      setStep('confirm');
+    } catch (error) {
+      setErrors({ pin: 'Network error. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleConfirm = async () => {
