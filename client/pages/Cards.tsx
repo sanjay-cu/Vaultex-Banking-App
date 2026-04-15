@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card as UICard } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Modal } from '../components/Modal';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAccount, Card } from '../context/AccountContext';
 import Sidebar from '../components/Sidebar';
 
 const Cards = () => {
+  const navigate = useNavigate();
+  const { theme } = useTheme();
   const { cards, addCard, deleteCard, updateCardLimit, user } = useAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);

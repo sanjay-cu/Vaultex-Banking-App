@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useAccount } from '../context/AccountContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const { t } = useLanguage();
   const { setUser } = useAccount();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -184,7 +187,7 @@ const Login = () => {
           <form onSubmit={handleLogin} style={fieldsStyle}>
             <Input
               type="email"
-              label="Email Address"
+              label={t('emailAddress')}
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -192,7 +195,7 @@ const Login = () => {
             />
             <Input
               type="password"
-              label="Password"
+              label={t('password')}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -207,7 +210,7 @@ const Login = () => {
             </div>
 
             <Button type="submit" fullWidth disabled={isLoading}>
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isLoading ? t('loading') : t('login')}
             </Button>
           </form>
 
@@ -226,7 +229,7 @@ const Login = () => {
           <div style={signupLinkStyle}>
             Don't have an account?{' '}
             <span style={linkStyle} onClick={() => navigate('/register')}>
-              Create one
+              {t('openAccount')}
             </span>
           </div>
         </div>

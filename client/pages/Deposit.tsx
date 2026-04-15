@@ -1,15 +1,18 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useAccount, formatCurrency } from '../context/AccountContext';
 import Sidebar from '../components/Sidebar';
 
 const Deposit = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const { t } = useLanguage();
   const { balance, deposit, transactions } = useAccount();
   const [step, setStep] = useState<'method' | 'amount' | 'confirm' | 'success'>('method');
   const [method, setMethod] = useState('bank_transfer');
@@ -167,7 +170,7 @@ const Deposit = () => {
       {/* Main Content */}
       <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div style={pageHeaderStyle}>
-          <h1 style={pageTitleStyle}>Deposit Money</h1>
+          <h1 style={pageTitleStyle}>{t('deposit')}</h1>
           <p style={pageSubtitleStyle}>
             Add funds to your VAULTEX account using various deposit methods
           </p>
@@ -217,7 +220,7 @@ const Deposit = () => {
               <Card style={{ marginBottom: '24px' }}>
                 <div style={balanceShowStyle}>
                   <div style={balanceItemStyle}>
-                    <div style={balanceLabelStyle}>Current Balance</div>
+                    <div style={balanceLabelStyle}>{t('currentBalance')}</div>
                     <div style={balanceValueStyle}>{formatCurrency(balance)}</div>
                   </div>
                   <div style={balanceItemStyle}>
@@ -235,7 +238,7 @@ const Deposit = () => {
               }}>
                 <Input
                   type="number"
-                  label="Deposit Amount (INR)"
+                  label={t('amount')}
                   placeholder="1000"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
@@ -255,13 +258,13 @@ const Deposit = () => {
                     onClick={() => setStep('method')}
                     fullWidth
                   >
-                    Back
+                    {t('back')}
                   </Button>
                   <Button
                     type="submit"
                     fullWidth
                   >
-                    Continue
+                    {t('continue')}
                   </Button>
                 </div>
               </form>
@@ -299,14 +302,14 @@ const Deposit = () => {
                     onClick={() => setStep('amount')}
                     fullWidth
                   >
-                    Back
+                    {t('back')}
                   </Button>
                   <Button
                     onClick={handleConfirm}
                     disabled={isLoading}
                     fullWidth
                   >
-                    {isLoading ? 'Processing...' : 'Confirm Deposit'}
+                    {isLoading ? t('loading') : t('confirm')}
                   </Button>
                 </div>
               </div>
@@ -328,7 +331,7 @@ const Deposit = () => {
                   Reference: {transactions.length > 0 ? transactions[0].ref : 'TXN' + Math.random().toString().slice(2, 10)}
                 </div>
                 <Button fullWidth onClick={() => navigate('/dashboard')}>
-                  Back to Dashboard
+                  {t('back')} {t('dashboard')}
                 </Button>
               </div>
             </Card>

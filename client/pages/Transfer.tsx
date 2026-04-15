@@ -1,14 +1,11 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/Button';
-import { Input } from '../components/Input';
-import { Card } from '../components/Card';
-import { theme } from '../theme';
 import { useAccount, formatCurrency } from '../context/AccountContext';
+import { useLanguage } from '../context/LanguageContext';
 import Sidebar from '../components/Sidebar';
 
 const Transfer = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const { t } = useLanguage();
   const { balance, transfer, transactions } = useAccount();
   const [tab, setTab] = useState<'own' | 'other' | 'international'>('other');
   const [step, setStep] = useState<'recipient' | 'amount' | 'pin' | 'confirm' | 'success'>('recipient');
@@ -212,7 +209,7 @@ const Transfer = () => {
       {/* Main Content */}
       <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div style={pageHeaderStyle}>
-          <h1 style={pageTitleStyle}>Send Money</h1>
+          <h1 style={pageTitleStyle}>{t('transferMoney')}</h1>
           <p style={pageSubtitleStyle}>
             Transfer funds to other VAULTEX accounts or banks
           </p>
@@ -353,7 +350,7 @@ const Transfer = () => {
                   <Card style={{ marginBottom: '24px' }}>
                     <div style={balanceShowStyle}>
                       <div style={balanceItemStyle}>
-                        <div style={balanceLabelStyle}>Current Balance</div>
+                        <div style={balanceLabelStyle}>{t('currentBalance')}</div>
                         <div style={balanceValueStyle}>{formatCurrency(balance)}</div>
                       </div>
                       <div style={balanceItemStyle}>
@@ -371,7 +368,7 @@ const Transfer = () => {
                   }}>
                     <Input
                       type="number"
-                      label="Transfer Amount (INR)"
+                      label={t('amount')}
                       placeholder="5000"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
@@ -395,13 +392,13 @@ const Transfer = () => {
                         }}
                         fullWidth
                       >
-                        Back
+                        {t('back')}
                       </Button>
                       <Button
                         type="submit"
                         fullWidth
                       >
-                        Continue
+                        {t('continue')}
                       </Button>
                     </div>
                   </form>
@@ -433,13 +430,13 @@ const Transfer = () => {
                         onClick={() => setStep('amount')}
                         fullWidth
                       >
-                        Back
+                        {t('back')}
                       </Button>
                       <Button
                         type="submit"
                         fullWidth
                       >
-                        Verify PIN
+                        {t('submit')}
                       </Button>
                     </div>
                   </form>
@@ -481,7 +478,7 @@ const Transfer = () => {
                         disabled={isLoading}
                         fullWidth
                       >
-                        {isLoading ? 'Processing...' : 'Confirm Transfer'}
+                        {isLoading ? t('loading') : t('confirm')}
                       </Button>
                     </div>
                   </div>
@@ -506,7 +503,7 @@ const Transfer = () => {
                   </div>
                 </div>
                 <Button fullWidth onClick={() => navigate('/dashboard')}>
-                  Back to Dashboard
+                  {t('back')} {t('dashboard')}
                 </Button>
               </div>
             </Card>

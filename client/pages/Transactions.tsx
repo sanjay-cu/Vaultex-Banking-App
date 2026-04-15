@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Table } from '../components/Table';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAccount, formatCurrency } from '../context/AccountContext';
 import Sidebar from '../components/Sidebar';
 
 const Transactions = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const { transactions, downloadTransactions } = useAccount();
 
   const containerStyle: React.CSSProperties = {

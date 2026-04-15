@@ -1,4 +1,5 @@
-import { theme } from '../theme';
+import React from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 interface ModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface ModalProps {
 }
 
 export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+  const { theme } = useTheme();
   if (!isOpen) return null;
 
   const overlayStyle: React.CSSProperties = {

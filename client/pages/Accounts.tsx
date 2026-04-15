@@ -1,12 +1,13 @@
 import React from 'react';
 import { Card } from '../components/Card';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAccount, formatCurrency } from '../context/AccountContext';
 import Sidebar from '../components/Sidebar';
 import { Button } from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 
 const Accounts = () => {
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const { user, balance, downloadTransactions } = useAccount();
 

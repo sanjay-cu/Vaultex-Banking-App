@@ -1,5 +1,48 @@
 // VAULTEX Banking System - Design System & Theme
-export const theme = {
+export type ThemeMode = 'dark' | 'light';
+
+export interface ThemeColors {
+  base: string;
+  surface: string;
+  surfaceAlt: string;
+  border: string;
+  accent: string;
+  accentHover: string;
+  textPrimary: string;
+  textMuted: string;
+  success: string;
+  danger: string;
+  warning: string;
+  info: string;
+}
+
+export interface Theme {
+  colors: ThemeColors;
+  font: {
+    heading: string;
+    body: string;
+    number: string;
+  };
+  radius: {
+    sm: string;
+    md: string;
+    lg: string;
+  };
+  shadow: {
+    card: string;
+    elevated: string;
+  };
+  spacing: {
+    xs: string;
+    sm: string;
+    md: string;
+    lg: string;
+    xl: string;
+    xxl: string;
+  };
+}
+
+export const darkTheme: Theme = {
   colors: {
     base: '#0D0F14',
     surface: '#161A22',
@@ -36,6 +79,24 @@ export const theme = {
     xl: '40px',
     xxl: '64px',
   },
-} as const;
+};
 
-export type Theme = typeof theme;
+export const lightTheme: Theme = {
+  ...darkTheme,
+  colors: {
+    ...darkTheme.colors,
+    base: '#F9FAFB',
+    surface: '#FFFFFF',
+    surfaceAlt: '#F3F4F6',
+    border: '#E5E7EB',
+    textPrimary: '#111827',
+    textMuted: '#6B7280',
+    accent: '#B8922F',
+  },
+  shadow: {
+    card: '0 1px 3px rgba(0,0,0,0.1)',
+    elevated: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+  },
+};
+
+export const theme = darkTheme;

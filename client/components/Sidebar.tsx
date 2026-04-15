@@ -1,13 +1,19 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { theme } from '../theme';
-import { Button } from './Button';
 import { useAccount } from '../context/AccountContext';
+import { Button } from './Button';
+import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
+import { Sun, Moon } from 'lucide-react';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, setUser } = useAccount();
+  const { theme, mode, toggleTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
+
+  if (!theme || !theme.colors) return null;
 
   const sidebarStyle: React.CSSProperties = {
     backgroundColor: theme.colors.surface,
@@ -110,10 +116,10 @@ const Sidebar = () => {
       <div style={navSectionStyle}>
         <div style={navSectionTitleStyle}>Main</div>
         <div style={navItemStyle('/dashboard')} onClick={() => navigate('/dashboard')}>
-          Dashboard
+          {t('dashboard')}
         </div>
         <div style={navItemStyle('/accounts')} onClick={() => navigate('/accounts')}>
-          Accounts
+          {t('accounts')}
         </div>
       </div>
 
@@ -121,16 +127,16 @@ const Sidebar = () => {
       <div style={navSectionStyle}>
         <div style={navSectionTitleStyle}>Transactions</div>
         <div style={navItemStyle('/deposit')} onClick={() => navigate('/deposit')}>
-          Deposit
+          {t('deposit')}
         </div>
         <div style={navItemStyle('/withdraw')} onClick={() => navigate('/withdraw')}>
-          Withdraw
+          {t('withdraw')}
         </div>
         <div style={navItemStyle('/transfer')} onClick={() => navigate('/transfer')}>
-          Transfer
+          {t('transfer')}
         </div>
         <div style={navItemStyle('/bills')} onClick={() => navigate('/bills')}>
-          Bill Payment
+          {t('bills')}
         </div>
       </div>
 
@@ -138,13 +144,13 @@ const Sidebar = () => {
       <div style={navSectionStyle}>
         <div style={navSectionTitleStyle}>Services</div>
         <div style={navItemStyle('/cards')} onClick={() => navigate('/cards')}>
-          Cards
+          {t('cards')}
         </div>
         <div style={navItemStyle('/requests')} onClick={() => navigate('/requests')}>
-          Requests
+          {t('requests')}
         </div>
         <div style={navItemStyle('/fixed-deposit')} onClick={() => navigate('/fixed-deposit')}>
-          Fixed Deposit
+          {t('fixedDeposit')}
         </div>
       </div>
 
@@ -155,13 +161,40 @@ const Sidebar = () => {
           Notifications
         </div>
         <div style={navItemStyle('/profile')} onClick={() => navigate('/profile')}>
-          Profile
+          {t('profile')}
         </div>
         <div style={navItemStyle('/settings')} onClick={() => navigate('/settings')}>
-          Settings
+          {t('settings')}
         </div>
         <div style={navItemStyle('/support')} onClick={() => navigate('/support')}>
-          Support
+          {t('support')}
+        </div>
+      </div>
+
+      {/* Language Switcher */}
+      <div style={navSectionStyle}>
+        <div style={navSectionTitleStyle}>Language</div>
+        <div style={{ display: 'flex', gap: '8px', padding: '0 16px' }}>
+          {['en', 'hi', 'mr'].map((lang) => (
+            <div
+              key={lang}
+              onClick={() => setLanguage(lang as any)}
+              style={{
+                flex: 1,
+                padding: '6px',
+                textAlign: 'center',
+                borderRadius: theme.radius.sm,
+                fontSize: '11px',
+                cursor: 'pointer',
+                backgroundColor: language === lang ? theme.colors.accent : theme.colors.surfaceAlt,
+                color: language === lang ? '#000' : theme.colors.textMuted,
+                fontWeight: 600,
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {lang === 'en' ? 'EN' : lang === 'hi' ? 'HI' : 'MR'}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -170,14 +203,22 @@ const Sidebar = () => {
         <div style={profileAvatarStyle}>{user?.fullName?.charAt(0).toUpperCase() || 'U'}</div>
         <div style={profileNameStyle}>{user?.fullName || 'User'}</div>
         <div style={profileEmailStyle}>{user?.email || 'user@example.com'}</div>
-        <Button
-          variant="secondary"
-          fullWidth
-          style={{ marginTop: '16px', fontSize: '12px' }}
-          onClick={handleLogout}
-        >
-          Logout
-        </Button>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+          <Button
+            variant="secondary"
+            style={{ flex: 1, fontSize: '12px' }}
+            onClick={handleLogout}
+          >
+            {t('logout')}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={toggleTheme}
+            style={{ width: '40px', padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            {mode === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </Button>
+        </div>
       </div>
     </div>
   );

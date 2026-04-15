@@ -1,12 +1,12 @@
-import React from 'react';
-import { Card } from '../components/Card';
-import { theme } from '../theme';
-import { useAccount } from '../context/AccountContext';
 import Sidebar from '../components/Sidebar';
 import { Button } from '../components/Button';
+import { useLanguage } from '../context/LanguageContext';
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const { theme } = useTheme();
   const { user } = useAccount();
+  const { t } = useLanguage();
 
   const containerStyle: React.CSSProperties = {
     minHeight: '100vh',
@@ -116,15 +116,15 @@ const Profile = () => {
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '24px' }}>Identity Information</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={infoRowStyle}>
-                <span style={labelStyle}>Full Name</span>
+                <span style={labelStyle}>{t('fullName')}</span>
                 <span style={valueStyle}>{user?.fullName}</span>
               </div>
               <div style={infoRowStyle}>
-                <span style={labelStyle}>Email Address</span>
+                <span style={labelStyle}>{t('emailAddress')}</span>
                 <span style={valueStyle}>{user?.email}</span>
               </div>
               <div style={infoRowStyle}>
-                <span style={labelStyle}>Phone Number</span>
+                <span style={labelStyle}>{t('phoneNumber')}</span>
                 <span style={valueStyle}>+91 98765 43210</span>
               </div>
               <div style={infoRowStyle}>

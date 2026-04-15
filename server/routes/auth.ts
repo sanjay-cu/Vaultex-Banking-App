@@ -1,26 +1,39 @@
 import { Router } from 'express';
 import { User } from '../models/User';
+import { Transaction } from '../models/Transaction';
 import bcrypt from 'bcryptjs';
 
 const router = Router();
 
     // Registration Endpoint
 router.post('/register', async (req, res) => {
-  console.log('--- REGISTRATION ATTEMPT STARTED ---');
   try {
+    console.log('--- REGISTRATION ATTEMPT STARTED ---');
+    console.log('Headers:', JSON.stringify(req.headers));
+    console.log('Body type:', typeof req.body);
+    console.log('Body keys:', Object.keys(req.body || {}));
+
     const { 
       fullName, email, password, 
       dob, gender, phone, nationalId,
       street, city, state, zip, country,
       accountType, initialDeposit, currency, pin,
       securityQuestion, securityAnswer
-    } = req.body;
+    } = req.body || {};
 
-    console.log(`Payload received for: ${email}`);
+    console.log(`Payload received for: ${email || 'UNKNOWN'}`);
 
     if (!fullName || !email || !password) {
       console.warn('Registration failed: Missing primary fields');
-      return res.status(400).json({ error: 'All primary fields (Name, Email, Password) are required.' });
+      return res.status(400).json({ 
+        error: 'All primary fields (Name, Email, Password) are required.',
+        debug: {
+          receivedEmail: !!email,
+          receivedName: !!fullName,
+          receivedPassword: !!password,
+          bodyPresent: !!req.body && Object.keys(req.body).length > 0
+        }
+      });
     }
 
     console.log('Checking for existing user...');
@@ -74,6 +87,27 @@ router.post('/register', async (req, res) => {
     try {
       await newUser.save();
       console.log('User saved successfully to DB');
+
+      // Create initial deposit transaction if amount > 0
+      if (numericDeposit > 0) {
+        console.log('Creating initial deposit transaction...');
+        const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const formatCurrencyStr = (num: number) => `₹ ${num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        const initialTx = new Transaction({
+          userId: newUser._id,
+          date: today,
+          ref: `TXN${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`,
+          type: 'Deposit',
+          description: 'Initial Deposit',
+          amount: formatCurrencyStr(numericDeposit),
+          numericAmount: numericDeposit,
+          status: '✓',
+          numericBalance: numericDeposit,
+        });
+        await initialTx.save();
+        console.log('Initial transaction record created');
+      }
     } catch (saveError: any) {
       console.error('DATABASE SAVE ERROR:', saveError);
       if (saveError.code === 11000) {
@@ -88,6 +122,7 @@ router.post('/register', async (req, res) => {
       fullName: newUser.fullName,
       email: newUser.email,
       accountNumber: newUser.accountNumber,
+      kycStatus: newUser.kycStatus,
       message: 'Account created successfully'
     });
     console.log('--- REGISTRATION SUCCESSFUL ---');
@@ -121,10 +156,49 @@ router.post('/login', async (req, res) => {
       fullName: user.fullName,
       email: user.email,
       accountNumber: user.accountNumber,
+      kycStatus: user.kycStatus || 'not_started',
+      kycLastCompletedAt: user.kycLastCompletedAt,
     });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Server error during login' });
+  }
+});
+
+// KYC Completion Endpoint
+router.post('/kyc', async (req, res) => {
+  try {
+    const { 
+      userId, 
+      street, city, state, zip, 
+      nationalId, occupation, incomeGroup 
+    } = req.body;
+
+    if (!userId) return res.status(400).json({ error: 'User ID is required' });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.street = street;
+    user.city = city;
+    user.state = state;
+    user.zip = zip;
+    user.nationalId = nationalId;
+    user.occupation = occupation;
+    user.incomeGroup = incomeGroup;
+    user.kycStatus = 'completed'; // For demo, auto-complete
+    user.kycLastCompletedAt = new Date();
+
+    await user.save();
+
+    res.json({
+      success: true,
+      kycStatus: user.kycStatus,
+      message: 'KYC completed successfully'
+    });
+  } catch (error: any) {
+    console.error('KYC error:', error);
+    res.status(500).json({ error: 'Failed to update KYC' });
   }
 });
 

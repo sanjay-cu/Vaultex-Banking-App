@@ -51,6 +51,8 @@ export type User = {
   fullName: string;
   email: string;
   accountNumber: string;
+  kycStatus?: 'not_started' | 'pending' | 'completed' | 'rejected';
+  kycLastCompletedAt?: string;
 };
 
 interface AccountContextType {
@@ -58,6 +60,8 @@ interface AccountContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   balance: number;
   transactions: Transaction[];
+  systemCount?: number;
+  sampleId?: string;
   cards: Card[];
   fixedDeposits: FixedDeposit[];
   moneyRequests: MoneyRequest[];
@@ -80,6 +84,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [user, setUser] = useState<User | null>(null);
   const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [systemCount, setSystemCount] = useState<number>(0);
+  const [sampleId, setSampleId] = useState<string>('');
   const [cards, setCards] = useState<Card[]>([]);
   const [fixedDeposits, setFixedDeposits] = useState<FixedDeposit[]>([]);
   const [moneyRequests, setMoneyRequests] = useState<MoneyRequest[]>([]);
@@ -88,7 +94,14 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Restore state from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    if (storedUser) setUser(JSON.parse(storedUser));
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Failed to parse user from localStorage');
+        localStorage.removeItem('user');
+      }
+    }
 
     const storedCards = localStorage.getItem('cards');
     if (storedCards) setCards(JSON.parse(storedCards));
@@ -98,6 +111,11 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const storedRequests = localStorage.getItem('moneyRequests');
     if (storedRequests) setMoneyRequests(JSON.parse(storedRequests));
+    
+    // If no user is being restored, we are done loading the session state
+    if (!storedUser) {
+      setIsLoading(false);
+    }
   }, []);
 
   // Sync state to localStorage
@@ -114,13 +132,29 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [moneyRequests]);
 
   const fetchTransactions = async () => {
-    // Note: Assuming transactions are global in backend right now, later could filter by user._id
+    if (!user?._id) {
+      if (!isLoading) return; // Already stopped loading
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch('/api/transactions');
+      setIsLoading(true);
+      const res = await fetch(`/api/transactions?userId=${user._id}`);
       if (!res.ok) throw new Error('Failed to fetch data');
       const data = await res.json();
-      setTransactions(data.transactions);
-      setBalance(data.balance);
+      setTransactions(data.transactions || []);
+      setBalance(data.balance || 0);
+      if (data.systemCount !== undefined) {
+        setSystemCount(data.systemCount);
+      }
+      
+      // Also fetch a sample for comparison
+      const dumpRes = await fetch('/api/transactions/dump');
+      const dumpData = await dumpRes.json().catch(() => []);
+      if (Array.isArray(dumpData) && dumpData.length > 0) {
+         setSampleId(dumpData[0].userId || 'No ID');
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -134,20 +168,43 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const addTransaction = async (
     amount: number,
-    type: Transaction['type'],
+    type: string,
     method: string,
     description: string
   ) => {
+    console.log(`Attempting to add transaction. User ID: ${user?._id || 'MISSING'}`);
+    
+    if (!user?._id) {
+      const error = 'Cannot process transaction: Session missing. Please try logging in again.';
+      console.error(error);
+      throw new Error(error);
+    }
+
     try {
       const res = await fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount, type, method, description })
+        body: JSON.stringify({ amount, type, method, description, userId: user._id })
       });
-      if (!res.ok) throw new Error('Failed to post transaction');
-      await fetchTransactions();
-    } catch (error) {
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        const msg = errorData.error || `Server Error ${res.status}`;
+        window.alert(`DEPOSIT FAILED: ${msg}`);
+        throw new Error(msg);
+      }
+      
+      // Give the database a moment to fully record the transaction before refreshing
+      console.log('Transaction posted. Refreshing dashboard in 500ms...');
+      setTimeout(async () => {
+        await fetchTransactions();
+        console.log('Dashboard data refreshed.');
+      }, 500);
+    } catch (error: any) {
       console.error(error);
+      if (!error.message.includes('DEPOSIT FAILED')) {
+         window.alert(`ERROR: ${error.message}`);
+      }
       throw error;
     }
   };
@@ -247,7 +304,9 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       createFD,
       requestMoney,
       downloadTransactions,
-      isLoading
+      isLoading,
+      systemCount,
+      sampleId
     }}>
       {children}
     </AccountContext.Provider>

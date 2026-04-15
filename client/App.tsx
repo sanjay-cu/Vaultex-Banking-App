@@ -1,6 +1,7 @@
+import React, { useEffect } from 'react';
 import "./global.css";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -18,17 +19,48 @@ import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Support from "./pages/Support";
+import KYC from './pages/KYC';
 import NotFound from "./pages/NotFound";
 
-import { AccountProvider } from "./context/AccountContext";
+import { AccountProvider, useAccount } from "./context/AccountContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { LanguageProvider } from "./context/LanguageContext";
 
-const App = () => (
-  <AccountProvider>
-    <BrowserRouter>
+const AppContent = () => {
+  const { user, isLoading } = useAccount();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      const needsInitialKYC = user.kycStatus === 'not_started' || !user.kycStatus;
+      
+      let needsRefreshKYC = false;
+      if (user.kycStatus === 'completed' && user.kycLastCompletedAt) {
+        const lastDate = new Date(user.kycLastCompletedAt);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - lastDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays >= 30) {
+          needsRefreshKYC = true;
+        }
+      }
+
+      if (needsInitialKYC || needsRefreshKYC) {
+        if (location.pathname !== '/kyc' && location.pathname !== '/login' && location.pathname !== '/' && location.pathname !== '/register') {
+          navigate('/kyc');
+        }
+      }
+    }
+  }, [user, isLoading, location.pathname, navigate]);
+
+  return (
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/kyc" element={<KYC />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/accounts" element={<Accounts />} />
       <Route path="/deposit" element={<Deposit />} />
@@ -45,8 +77,22 @@ const App = () => (
       <Route path="/support" element={<Support />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
-  </BrowserRouter>
-  </AccountProvider>
+  );
+};
+
+const App = () => (
+  <ThemeProvider>
+    <LanguageProvider>
+      <AccountProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </AccountProvider>
+    </LanguageProvider>
+  </ThemeProvider>
 );
 
-createRoot(document.getElementById("root")!).render(<App />);
+const root = document.getElementById("root");
+if (root) {
+  createRoot(root).render(<App />);
+}

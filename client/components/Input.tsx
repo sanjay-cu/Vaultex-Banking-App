@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { theme } from '../theme';
+import React, { useState } from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 interface InputProps {
   type?: string;
@@ -26,6 +26,7 @@ export const Input = ({
   fullWidth = true,
   style = {},
 }: InputProps) => {
+  const { theme } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
 
   const containerStyle: React.CSSProperties = {

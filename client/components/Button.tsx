@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { theme } from '../theme';
+import React, { useState } from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 interface ButtonProps {
   children: React.ReactNode;
@@ -21,6 +21,7 @@ export const Button = ({
   fullWidth = false,
   style = {},
 }: ButtonProps) => {
+  const { theme } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
 
   const baseStyle: React.CSSProperties = {

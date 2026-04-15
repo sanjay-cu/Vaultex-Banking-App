@@ -1,11 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Button } from "../components/Button";
-import { theme } from "../theme";
+import { useTheme } from '../context/ThemeContext';
 
 const NotFound = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   useEffect(() => {
     console.error(

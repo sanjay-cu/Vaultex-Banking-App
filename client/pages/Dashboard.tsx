@@ -1,26 +1,54 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Table } from '../components/Table';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAccount, formatCurrency } from '../context/AccountContext';
+import { useLanguage } from '../context/LanguageContext';
 import Sidebar from '../components/Sidebar';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { balance, transactions, user, setUser, downloadTransactions } = useAccount();
+  const { theme } = useTheme();
+  const { balance, transactions, user, setUser, downloadTransactions, systemCount, sampleId, isLoading } = useAccount();
+  const { t } = useLanguage();
+  const [currentTime, setCurrentTime] = React.useState(new Date());
+
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatIST = (date: Date) => {
+    return date.toLocaleTimeString('en-IN', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata'
+    });
+  };
+
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return t('goodMorning');
+    if (hour < 17) return t('goodAfternoon');
+    return t('goodEvening');
+  };
+
+  if (!theme || !theme.colors) {
+    return <div style={{ background: '#000', color: '#fff', height: '100vh', padding: '20px' }}>Initializing Theme...</div>;
+  }
+
+  if (isLoading && !user) {
+    return <div style={{ background: theme.colors.base, color: theme.colors.textPrimary, height: '100vh', padding: '20px' }}>Loading account data...</div>;
+  }
 
   const containerStyle: React.CSSProperties = {
     minHeight: '100vh',
     backgroundColor: theme.colors.base,
     display: 'grid',
     gridTemplateColumns: '250px 1fr',
-  };
-
-  const profileEmailStyle: React.CSSProperties = {
-    fontSize: '11px',
-    color: theme.colors.textMuted,
-    fontFamily: theme.font.body,
   };
 
   const pageHeaderStyle: React.CSSProperties = {
@@ -108,14 +136,18 @@ const Dashboard = () => {
     gap: '12px',
   };
 
-  const actionButtonStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  };
-
-  const thisMonthIncome = transactions.filter((t) => t.type === 'Deposit').reduce((acc, t) => acc + t.numericAmount, 0);
-  const thisMonthSpent = transactions.filter((t) => ['Withdrawal', 'Transfer', 'Bill Payment'].includes(t.type)).reduce((acc, t) => acc + t.numericAmount, 0);
+  let thisMonthIncome = 0;
+  let thisMonthSpent = 0;
+  
+  if (Array.isArray(transactions)) {
+    thisMonthIncome = transactions
+      .filter((t: any) => t && t.type === 'Deposit')
+      .reduce((acc: number, t: any) => acc + (t.numericAmount || 0), 0);
+    
+    thisMonthSpent = transactions
+      .filter((t: any) => t && ['Withdrawal', 'Transfer', 'Bill Payment'].includes(t.type))
+      .reduce((acc: number, t: any) => acc + (t.numericAmount || 0), 0);
+  }
 
   const columns = [
     { key: 'date', label: 'Date' },
@@ -129,27 +161,45 @@ const Dashboard = () => {
   return (
     <div style={containerStyle}>
       <Sidebar />
-
-      {/* Main Content */}
       <div style={{ padding: '40px' }}>
-        {/* Page Header */}
         <div style={pageHeaderStyle}>
-          <h1 style={pageTitleStyle}>Dashboard</h1>
-          <p style={pageSubtitleStyle}>Welcome back, {user?.fullName || 'User'}. Here's your account overview.</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: '14px', color: theme.colors.accent, fontWeight: 500, marginBottom: '4px' }}>
+                {getGreeting()},
+              </div>
+              <h1 style={pageTitleStyle}>{user?.fullName || 'Sanjay Choudhary'}</h1>
+              <p style={pageSubtitleStyle}>
+                User ID: {user?._id || 'None'} | Bank Total: {systemCount || 0}
+              </p>
+            </div>
+            <div style={{ 
+              textAlign: 'right', 
+              padding: '12px 20px', 
+              backgroundColor: theme.colors.surface, 
+              borderRadius: theme.radius.md,
+              border: `1px solid ${theme.colors.border}`,
+              boxShadow: theme.shadow.sm
+            }}>
+              <div style={{ fontSize: '10px', color: theme.colors.textMuted, textTransform: 'uppercase', marginBottom: '4px' }}>IST Time</div>
+              <div style={{ fontSize: '18px', fontWeight: 700, color: theme.colors.accent, fontFamily: theme.font.number }}>
+                {formatIST(currentTime)}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Stats */}
         <div style={statsGridStyle}>
           <Card variant="stat" style={statCardStyle}>
-            <div style={statLabelStyle}>Current Balance</div>
+            <div style={statLabelStyle}>{t('currentBalance')}</div>
             <div style={statValueStyle}>{formatCurrency(balance)}</div>
           </Card>
           <Card variant="stat" style={statCardStyle}>
-            <div style={statLabelStyle}>This Month Income</div>
+            <div style={statLabelStyle}>{t('monthlyIncome')}</div>
             <div style={statValueStyle}>{formatCurrency(thisMonthIncome)}</div>
           </Card>
           <Card variant="stat" style={statCardStyle}>
-            <div style={statLabelStyle}>This Month Spent</div>
+            <div style={statLabelStyle}>{t('monthlySpent')}</div>
             <div style={statValueStyle}>{formatCurrency(thisMonthSpent)}</div>
           </Card>
           <Card variant="stat" style={statCardStyle}>
@@ -158,18 +208,16 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Content Grid */}
         <div style={contentGridStyle}>
-          {/* Transactions */}
           <div style={transactionsContainerStyle}>
             <div style={transactionHeaderStyle}>
-              <h2 style={sectionTitleStyle}>Recent Transactions</h2>
+              <h2 style={sectionTitleStyle}>{t('recentTransactions')}</h2>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <a style={viewAllLinkStyle} onClick={downloadTransactions}>
                   Download Statement ↓
                 </a>
                 <a style={viewAllLinkStyle} onClick={() => navigate('/transactions')}>
-                  View All →
+                  {t('viewAll')} →
                 </a>
               </div>
             </div>
@@ -178,47 +226,25 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Quick Actions */}
           <div>
             <h3 style={{ ...sectionTitleStyle, marginBottom: '16px' }}>
-              Quick Actions
+              {t('quickActions')}
             </h3>
             <div style={quickActionsStyle}>
-              <Button
-                onClick={() => navigate('/deposit')}
-                fullWidth
-                style={{ fontSize: '13px', padding: '16px' }}
-              >
-                Deposit
+              <Button onClick={() => navigate('/deposit')} fullWidth style={{ fontSize: '13px', padding: '16px' }}>
+                {t('deposit')}
               </Button>
-              <Button
-                onClick={() => navigate('/withdraw')}
-                fullWidth
-                style={{ fontSize: '13px', padding: '16px' }}
-              >
-                Withdraw
+              <Button onClick={() => navigate('/withdraw')} fullWidth style={{ fontSize: '13px', padding: '16px' }}>
+                {t('withdraw')}
               </Button>
-              <Button
-                onClick={() => navigate('/transfer')}
-                fullWidth
-                style={{ fontSize: '13px', padding: '16px' }}
-              >
-                Transfer
+              <Button onClick={() => navigate('/transfer')} fullWidth style={{ fontSize: '13px', padding: '16px' }}>
+                {t('transfer')}
               </Button>
-              <Button
-                onClick={() => navigate('/bills')}
-                fullWidth
-                style={{ fontSize: '13px', padding: '16px' }}
-              >
-                Pay Bill
+              <Button onClick={() => navigate('/bills')} fullWidth style={{ fontSize: '13px', padding: '16px' }}>
+                {t('bills')}
               </Button>
-              <Button
-                onClick={() => navigate('/requests')}
-                variant="secondary"
-                fullWidth
-                style={{ fontSize: '13px', padding: '16px' }}
-              >
-                Request Money
+              <Button onClick={() => navigate('/requests')} variant="secondary" fullWidth style={{ fontSize: '13px', padding: '16px' }}>
+                {t('requests')}
               </Button>
             </div>
           </div>

@@ -1,4 +1,5 @@
-import { theme } from '../theme';
+import React from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 interface TableProps {
   columns: { key: string; label: string; width?: string }[];
@@ -7,6 +8,7 @@ interface TableProps {
 }
 
 export const Table = ({ columns, data, style = {} }: TableProps) => {
+  const { theme } = useTheme();
   const tableStyle: React.CSSProperties = {
     width: '100%',
     borderCollapse: 'collapse',

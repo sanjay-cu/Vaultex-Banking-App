@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Table } from '../components/Table';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAccount, formatCurrency } from '../context/AccountContext';
 import Sidebar from '../components/Sidebar';
 
 const Requests = () => {
+  const navigate = useNavigate();
+  const { theme } = useTheme();
   const { moneyRequests, requestMoney } = useAccount();
   const [recipient, setRecipient] = useState('');
   const [phoneOrUpi, setPhoneOrUpi] = useState('');

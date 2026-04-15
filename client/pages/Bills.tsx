@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Card } from '../components/Card';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAccount, formatCurrency } from '../context/AccountContext';
 import Sidebar from '../components/Sidebar';
 
@@ -23,6 +23,7 @@ const operatorsMap: Record<string, string[]> = {
 
 const Bills = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const { balance, payBill } = useAccount();
   const [step, setStep] = useState<'category' | 'operator' | 'details' | 'success'>('category');
   const [selectedBiller, setSelectedBiller] = useState(billers[0]);

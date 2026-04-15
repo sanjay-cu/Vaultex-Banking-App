@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ITransaction extends Document {
+  userId: string;
   date: string;
   ref: string;
   type: 'Deposit' | 'Withdrawal' | 'Transfer' | 'Bill Payment';
@@ -12,6 +13,7 @@ export interface ITransaction extends Document {
 }
 
 const TransactionSchema: Schema = new Schema({
+  userId: { type: String, required: true }, // Added to filter transactions by user
   date: { type: String, required: true },
   ref: { type: String, required: true },
   type: { type: String, enum: ['Deposit', 'Withdrawal', 'Transfer', 'Bill Payment'], required: true },
@@ -22,4 +24,7 @@ const TransactionSchema: Schema = new Schema({
   numericBalance: { type: Number, required: true },
 }, { timestamps: true });
 
-export const Transaction = mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema);
+if (mongoose.models.Transaction) {
+  delete mongoose.models.Transaction;
+}
+export const Transaction = mongoose.model<ITransaction>('Transaction', TransactionSchema);

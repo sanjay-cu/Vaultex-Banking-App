@@ -1,10 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/Card';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAccount } from '../context/AccountContext';
 import Sidebar from '../components/Sidebar';
 
 const Notifications = () => {
+  const navigate = useNavigate();
+  const { theme } = useTheme();
   const { transactions } = useAccount();
 
   const containerStyle: React.CSSProperties = {

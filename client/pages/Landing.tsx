@@ -1,9 +1,36 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { Sun, Moon, Languages } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const Landing = () => {
+  const { theme, mode, toggleTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
+  const [time, setTime] = React.useState(new Date());
+
+  React.useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatIST = (date: Date) => {
+    return date.toLocaleTimeString('en-IN', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata'
+    });
+  };
+
+  const getGreeting = () => {
+    const hour = time.getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
   const containerStyle: React.CSSProperties = {
     minHeight: '100vh',
@@ -76,6 +103,7 @@ const Landing = () => {
     justifyContent: 'center',
     position: 'relative',
     overflow: 'hidden',
+    boxShadow: `0 0 20px ${theme.colors.accent}33`, // Subtle gold glow
   };
 
   const cardPreviewStyle: React.CSSProperties = {
@@ -194,49 +222,165 @@ const Landing = () => {
   return (
     <div style={containerStyle}>
       {/* Navbar */}
-      <nav style={navbarStyle}>
-        <div style={logoStyle}>VAULTEX</div>
+      <header style={navbarStyle}>
+        <div style={logoStyle} id="site-logo">VAULTEX</div>
         <div style={navButtonsStyle}>
-          <Button variant="secondary" onClick={() => navigate('/login')}>
-            Sign In
+          <Button 
+            variant="secondary" 
+            onClick={toggleTheme}
+            style={{ width: '40px', padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            id="theme-toggle"
+          >
+            {mode === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
-          <Button onClick={() => navigate('/register')}>
-            Open Account
+          
+          <div style={{ display: 'flex', backgroundColor: theme.colors.surfaceAlt, borderRadius: theme.radius.md, padding: '4px' }}>
+            {['en', 'hi', 'mr'].map((lang) => (
+              <div
+                key={lang}
+                onClick={() => setLanguage(lang as any)}
+                style={{
+                  padding: '6px 10px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  backgroundColor: language === lang ? theme.colors.accent : 'transparent',
+                  color: language === lang ? '#000' : theme.colors.textMuted,
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {lang.toUpperCase()}
+              </div>
+            ))}
+          </div>
+
+          <Button id="nav-signin-btn" variant="secondary" onClick={() => navigate('/login')}>
+            {t('login')}
+          </Button>
+          <Button id="nav-register-btn" onClick={() => navigate('/register')}>
+            {t('openAccount')}
           </Button>
         </div>
-      </nav>
+      </header>
 
       {/* Hero Section */}
       <section style={heroSectionStyle}>
         <div style={heroTextStyle}>
-          <h1 style={headingStyle}>Banking Redefined</h1>
+          <div style={{ color: theme.colors.accent, fontWeight: 600, fontSize: '16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            {getGreeting()}, welcome to
+          </div>
+          <h1 style={headingStyle} id="hero-heading">{t('bankingRedefined')}</h1>
           <p style={subtitleStyle}>
-            Experience modern banking with VAULTEX. Secure, fast, and transparent financial
-            services designed for India.
+            {t('heroSubtitle')}
           </p>
           <div style={ctaButtonsStyle}>
-            <Button onClick={() => navigate('/register')} style={{ flex: 1 }} fullWidth>
-              Open Account Now
+            <Button id="hero-cta-register" onClick={() => navigate('/register')} style={{ flex: 1 }} fullWidth>
+              {t('openAccount')}
             </Button>
             <Button
+              id="hero-cta-login"
               variant="secondary"
               onClick={() => navigate('/login')}
               style={{ flex: 1 }}
               fullWidth
             >
-              Login
+              {t('login')}
             </Button>
           </div>
         </div>
         <div style={heroImageStyle}>
-          <div style={cardPreviewStyle}>
-            <div>
-              <div style={cardNumberStyle}>•••• •••• •••• 4242</div>
+          {/* Dynamic Dashboard Preview */}
+          <div style={{
+            width: '85%',
+            height: '90%',
+            backgroundColor: '#0D0F14',
+            borderRadius: '24px',
+            border: '8px solid #1A1D23',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            fontFamily: theme.font.body
+          }}>
+            {/* Status Bar */}
+            <div style={{ padding: '12px 20px', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#666' }}>
+              <span>{formatIST(time)}</span>
+              <div style={{ display: 'flex', gap: '6px' }}>📶 🔋</div>
             </div>
-            <div>
-              <div style={cardNameStyle}>Cardholder Name</div>
-              <div style={{ ...cardNameStyle, marginTop: '4px' }}>12/28</div>
+
+            {/* Header */}
+            <div style={{ padding: '0 20px 20px' }}>
+              <div style={{ fontSize: '12px', color: theme.colors.accent, fontWeight: 500 }}>{getGreeting()},</div>
+              <div style={{ fontSize: '20px', fontWeight: 600, color: '#fff' }}>Vaultex</div>
             </div>
+
+            {/* Cards Scroll */}
+            <div style={{ padding: '0 20px', display: 'flex', gap: '12px', overflow: 'hidden' }}>
+              <div style={{ 
+                minWidth: '220px', 
+                height: '130px', 
+                background: 'linear-gradient(135deg, #D4AF37, #AA8419)', 
+                borderRadius: '16px',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                color: '#000'
+              }}>
+                <div style={{ fontSize: '10px', fontWeight: 600 }}>PREMIER ELITE</div>
+                <div style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '2px' }}>**** 8824</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                   <div style={{ fontSize: '12px', fontWeight: 600 }}>$ 824,738.85</div>
+                   <div style={{ fontSize: '14px', fontWeight: 800 }}>VISA</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+              {['Send', 'Receive', 'Pay', 'More'].map(action => (
+                <div key={action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '40px', height: '40px', backgroundColor: '#1A1D23', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                    {action === 'Send' ? '↗️' : action === 'Receive' ? '↙️' : action === 'Pay' ? '🧾' : '⋯'}
+                  </div>
+                  <span style={{ fontSize: '10px', color: '#999' }}>{action}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Transactions */}
+            <div style={{ flex: 1, backgroundColor: '#13161B', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: '20px' }}>
+               <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff', marginBottom: '15px' }}>Recent Activity</div>
+               {[
+                 { label: 'Apple Store', amount: '-$ 1,499.00', icon: '🍎' },
+                 { label: 'Salary Reward', amount: '+$ 15,500.00', icon: '💰' }
+               ].map((t, i) => (
+                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                     <div style={{ width: '32px', height: '32px', backgroundColor: '#1A1D23', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{t.icon}</div>
+                     <span style={{ fontSize: '12px', color: '#ccc' }}>{t.label}</span>
+                   </div>
+                   <span style={{ fontSize: '12px', color: t.amount.startsWith('+') ? '#4CAF50' : '#fff', fontWeight: 500 }}>{t.amount}</span>
+                 </div>
+               ))}
+            </div>
+          </div>
+          
+          <div style={{
+            position: 'absolute',
+            bottom: '20px',
+            padding: '10px 20px',
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            color: '#D4AF37',
+            border: '1px solid rgba(212, 175, 55, 0.3)',
+            fontSize: '12px',
+            fontWeight: 500,
+            zIndex: 10
+          }}>
+            ✨ Smart Banking Interface
           </div>
         </div>
       </section>
@@ -276,13 +420,21 @@ const Landing = () => {
 
       {/* Footer */}
       <footer style={footerStyle}>
-        <div style={logoStyle}>VAULTEX</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={logoStyle}>VAULTEX</div>
+          <div style={{ fontSize: '12px', color: theme.colors.textMuted }}>
+            Developed by: <span style={{ color: theme.colors.accent, fontWeight: 600 }}>Sanjay Choudhary</span>
+          </div>
+          <div style={{ fontSize: '11px', color: theme.colors.textMuted }}>
+            Email: <a href="mailto:sanjayjatchoudhary0@gmail.com" style={{ color: theme.colors.textMuted, textDecoration: 'none' }}>sanjayjatchoudhary0@gmail.com</a>
+          </div>
+        </div>
         <div style={footerLinksStyle}>
           <a style={footerLinkStyle}>Privacy Policy</a>
           <a style={footerLinkStyle}>Terms of Service</a>
           <a style={footerLinkStyle}>Contact Support</a>
         </div>
-        <div style={{ color: theme.colors.textMuted, fontSize: '12px' }}>
+        <div style={{ color: theme.colors.textMuted, fontSize: '12px', textAlign: 'right' }}>
           © 2024 VAULTEX. All rights reserved.
         </div>
       </footer>

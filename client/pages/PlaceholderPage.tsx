@@ -1,6 +1,7 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import Sidebar from '../components/Sidebar';
 
 interface PlaceholderPageProps {
@@ -10,6 +11,7 @@ interface PlaceholderPageProps {
 
 const PlaceholderPage = ({ title, description }: PlaceholderPageProps) => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const containerStyle: React.CSSProperties = {
     minHeight: '100vh',

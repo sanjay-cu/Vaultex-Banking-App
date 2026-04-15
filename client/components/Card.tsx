@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -7,6 +7,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Card = ({ children, variant = 'default', style = {}, onClick, ...props }: CardProps) => {
+  const { theme } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
 
   const baseStyle: React.CSSProperties = {

@@ -20,6 +20,10 @@ export interface IUser extends Document {
   pin?: string;
   securityQuestion?: string;
   securityAnswer?: string;
+  kycStatus?: 'not_started' | 'pending' | 'completed' | 'rejected';
+  kycLastCompletedAt?: Date;
+  occupation?: string;
+  incomeGroup?: string;
 }
 
 const UserSchema: Schema = new Schema({
@@ -42,6 +46,14 @@ const UserSchema: Schema = new Schema({
   pin: { type: String },
   securityQuestion: { type: String },
   securityAnswer: { type: String },
+  kycStatus: { 
+    type: String, 
+    enum: ['not_started', 'pending', 'completed', 'rejected'], 
+    default: 'not_started' 
+  },
+  kycLastCompletedAt: { type: Date },
+  occupation: { type: String },
+  incomeGroup: { type: String },
 }, { timestamps: true });
 
 export const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
