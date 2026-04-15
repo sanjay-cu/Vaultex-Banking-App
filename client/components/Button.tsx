@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
-interface ButtonProps {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  onClick?: () => void;
   variant?: 'primary' | 'secondary' | 'danger';
-  disabled?: boolean;
-  className?: string;
-  type?: 'button' | 'submit' | 'reset';
-  style?: React.CSSProperties;
   fullWidth?: boolean;
 }
 
@@ -20,6 +15,7 @@ export const Button = ({
   type = 'button',
   fullWidth = false,
   style = {},
+  ...props
 }: ButtonProps) => {
   const { theme } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
@@ -67,6 +63,7 @@ export const Button = ({
         ...variantStyles[variant],
         ...style,
       }}
+      {...props}
     >
       {children}
     </button>

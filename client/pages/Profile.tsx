@@ -1,9 +1,12 @@
+import React from 'react';
 import Sidebar from '../components/Sidebar';
 import { Button } from '../components/Button';
+import { Card } from '../components/Card';
+import { useTheme } from '../context/ThemeContext';
+import { useAccount } from '../context/AccountContext';
 import { useLanguage } from '../context/LanguageContext';
 
 const Profile = () => {
-  const navigate = useNavigate();
   const { theme } = useTheme();
   const { user } = useAccount();
   const { t } = useLanguage();

@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { useTheme } from '../context/ThemeContext';
-import { Sun, Moon, Languages } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const Landing = () => {
@@ -430,9 +430,9 @@ const Landing = () => {
           </div>
         </div>
         <div style={footerLinksStyle}>
-          <a style={footerLinkStyle}>Privacy Policy</a>
-          <a style={footerLinkStyle}>Terms of Service</a>
-          <a style={footerLinkStyle}>Contact Support</a>
+          <a style={footerLinkStyle} href="#">Privacy Policy</a>
+          <a style={footerLinkStyle} href="#">Terms of Service</a>
+          <a style={footerLinkStyle} href="#">Contact Support</a>
         </div>
         <div style={{ color: theme.colors.textMuted, fontSize: '12px', textAlign: 'right' }}>
           © 2024 VAULTEX. All rights reserved.

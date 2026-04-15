@@ -29,6 +29,8 @@ export interface Theme {
     lg: string;
   };
   shadow: {
+    sm: string;
+    md: string;
     card: string;
     elevated: string;
   };
@@ -68,6 +70,8 @@ export const darkTheme: Theme = {
     lg: '10px',
   },
   shadow: {
+    sm: '0 1px 2px rgba(0,0,0,0.2)',
+    md: '0 4px 6px -1px rgba(0,0,0,0.3)',
     card: '0 1px 3px rgba(0,0,0,0.4)',
     elevated: '0 8px 24px rgba(0,0,0,0.6)',
   },
@@ -94,6 +98,8 @@ export const lightTheme: Theme = {
     accent: '#B8922F',
   },
   shadow: {
+    sm: '0 1px 2px rgba(0,0,0,0.05)',
+    md: '0 4px 6px -1px rgba(0,0,0,0.1)',
     card: '0 1px 3px rgba(0,0,0,0.1)',
     elevated: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
   },

@@ -11,7 +11,7 @@ import Sidebar from '../components/Sidebar';
 const Dashboard = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const { balance, transactions, user, setUser, downloadTransactions, systemCount, sampleId, isLoading } = useAccount();
+  const { balance, transactions, user, downloadTransactions, systemCount, isLoading } = useAccount();
   const { t } = useLanguage();
   const [currentTime, setCurrentTime] = React.useState(new Date());
 
@@ -213,10 +213,10 @@ const Dashboard = () => {
             <div style={transactionHeaderStyle}>
               <h2 style={sectionTitleStyle}>{t('recentTransactions')}</h2>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <a style={viewAllLinkStyle} onClick={downloadTransactions}>
+                <a style={viewAllLinkStyle} href="#" onClick={(e) => { e.preventDefault(); downloadTransactions(); }}>
                   Download Statement ↓
                 </a>
-                <a style={viewAllLinkStyle} onClick={() => navigate('/transactions')}>
+                <a style={viewAllLinkStyle} href="#" onClick={(e) => { e.preventDefault(); navigate('/transactions'); }}>
                   {t('viewAll')} →
                 </a>
               </div>
