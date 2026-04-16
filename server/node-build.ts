@@ -5,14 +5,16 @@ import { createServer } from "./index";
 const app = createServer();
 const PORT = process.env.PORT || 3000;
 
-// Serve static frontend (React build)
+// Resolve directory
 const __dirname = import.meta.dirname;
 const distPath = path.join(__dirname, "../spa");
 
+// Serve static files (React build)
 app.use(express.static(distPath));
 
-// Handle React routes (IMPORTANT FIX HERE)
-app.get("/*", (req, res) => {
+// ✅ FIXED: wildcard route (Express v5 compatible)
+app.get(/.*/, (req, res) => {
+  // Skip API routes
   if (req.path.startsWith("/api/") || req.path.startsWith("/health")) {
     return res.status(404).json({ error: "API endpoint not found" });
   }
