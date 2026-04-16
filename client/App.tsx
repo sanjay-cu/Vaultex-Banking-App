@@ -33,16 +33,19 @@ const AppContent = () => {
 
   useEffect(() => {
     if (!isLoading && user) {
+      // 1. Check if user has started KYC at all
       const needsInitialKYC = user.kycStatus === 'not_started' || !user.kycStatus;
       
+      // 2. Refresh Policy: Only ask after 30 days of completion
       let needsRefreshKYC = false;
       if (user.kycStatus === 'completed' && user.kycLastCompletedAt) {
         const lastDate = new Date(user.kycLastCompletedAt);
         const now = new Date();
-        const diffTime = Math.abs(now.getTime() - lastDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffInMs = now.getTime() - lastDate.getTime();
+        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
         
-        if (diffDays >= 30) {
+        // Only trigger if at least 30 days have passed
+        if (diffInDays >= 30) {
           needsRefreshKYC = true;
         }
       }

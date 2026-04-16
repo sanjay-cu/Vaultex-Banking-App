@@ -194,6 +194,7 @@ router.post('/kyc', async (req, res) => {
     res.json({
       success: true,
       kycStatus: user.kycStatus,
+      kycLastCompletedAt: user.kycLastCompletedAt,
       message: 'KYC completed successfully'
     });
   } catch (error: any) {
